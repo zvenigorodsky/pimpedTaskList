@@ -1,0 +1,8 @@
+{
+    "presets": ["@babel/preset-react", "@babel/preset-env"],
+    "plugins": [
+        "@babel/plugin-transform-exponentiation-operator",
+        "@babel/plugin-proposal-class-properties",
+        "@babel/plugin-proposal-optional-chaining"
+    ]
+}
