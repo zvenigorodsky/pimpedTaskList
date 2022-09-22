@@ -1,4 +1,4 @@
-import React,{ useState, useEffect, Fragment } from 'react';
+import React,{ useState, Fragment } from 'react';
 import Task from './Task';
 import { Typography,
         Grid,   
@@ -6,7 +6,6 @@ import { Typography,
         Button,
         InputBase
     }from '@material-ui/core';
-import { connect } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import axios from 'axios';
 import useGetTasks from '../hooks/useGetTasks';
@@ -96,9 +95,9 @@ function Tasks (props){
             console.log(err);
         }
     }
-    const toggleComplete = async(task, complete) => {
+    const toggleComplete = async(task) => {
         try{
-            await axios.patch(`/api/v1/tasks/toggleCompleteField/${task._id}`,{complete:!complete});
+            await axios.patch(`/api/v1/tasks/toggleCompleteField/${task._id}`,{complete:!task.complete});
             mutate();
         }catch(err){
             console.log(err);
@@ -106,6 +105,8 @@ function Tasks (props){
     }
     const deleteComplete = async() => {
         try{
+            const optimisticState = tasks.filter((task) => !task.complete)
+            mutate(optimisticState, false)
             await axios.delete('/api/v1/tasks/completedTasks');
             mutate()
         }catch(err){
@@ -215,17 +216,6 @@ function Tasks (props){
             
         </ Container>
     )
-    }
-const mapStateToProps = (state) => {
-    return{
-        tasks: state.tasks
-    }
 }
-const mapDispatchToProps = (dispatch) => {
-    return{
-        toggleCompleteTask:(_id) => {
-            dispatch({ type:'TOGGLE_COMPLETE_TASK', _id: _id})
-        }
-    }
-}
-export default connect(mapStateToProps, mapDispatchToProps)(Tasks)
+
+export default Tasks

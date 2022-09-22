@@ -124,15 +124,12 @@ function AddTaskForm (props){
 }
 
 const mapStateToProps = (state) => {
-    return {
-        id: state.id
-    };
+    return {};
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
         toggleAddTaskForm: () => { dispatch({ type: 'TOGGLE_ADD_TASK_FORM' }) },
-        addTask: (task) => {dispatch({type: 'ADD_TASK'})}
     }
 }
 

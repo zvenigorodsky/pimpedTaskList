@@ -23,8 +23,7 @@ export default function Task (props){
 
     const toggleCheckbox =async () =>{
         const task = props.task;
-        const complete = props.task.complete;
-        props.toggleCompleteTask(task, complete);
+        props.toggleCompleteTask(task);
     }
     return(
         <Card 
