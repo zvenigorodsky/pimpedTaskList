@@ -12,6 +12,8 @@ import {Container,
     } from '@material-ui/core'; 
 import { makeStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
+import axios from 'axios'
+import useGetTasks from '../hooks/useGetTasks'
 
 const useStyles = makeStyles({
     focusFormParent:{
@@ -29,19 +31,24 @@ const useStyles = makeStyles({
 
 })
 
-function AddTaskForm (props){
-
+function AddTaskForm (props){ 
+    const { mutate } = useGetTasks();
+    
     const classes = useStyles(props);
 
     const [title,setTitle] = useState('');
     const [description,setDescription] = useState('');
-    const [task,setTask] = useState([]);
+    const [task,setTask] = useState({});
 
     useEffect(()=>{
-        if(task.length == 0) return;
-        props.addTask(task);
-        props.toggleAddTaskForm();
-    },[task])
+        async function postTask(){
+            if(Object.keys(task).length === 0) return;
+            await axios.post('/api/v1/tasks/', task)
+            mutate();
+            props.toggleAddTaskForm();
+        }
+        postTask()
+    },[task, setTask])
     
     const handleTitleChange = (e) => {
         const value = e.target.value;
@@ -54,10 +61,9 @@ function AddTaskForm (props){
     const handleSubmit = (e) => {
         e.preventDefault();
         setTask({
-            id:props.id,
             title: title,
             description: description,
-            complete: false, 
+            complete: false
         });
     }
     return (
@@ -125,8 +131,8 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        addTask: (task) => { dispatch({ type: 'ADD_TASK', task: task }) },
         toggleAddTaskForm: () => { dispatch({ type: 'TOGGLE_ADD_TASK_FORM' }) },
+        addTask: (task) => {dispatch({type: 'ADD_TASK'})}
     }
 }
 

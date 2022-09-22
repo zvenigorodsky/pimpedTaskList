@@ -7,23 +7,29 @@ import { CardHeader,
         IconButton,
         Checkbox  
     } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 import ToolBar from '@material-ui/core/Toolbar';
 import HighlightOffIcon from '@material-ui/icons/HighlightOff';
+import axios from 'axios'
 
-
+const useStyles = makeStyles({
+    card: {
+        boxShadow:'0 0 10px 2px rgba(173,173,173,0.75)',
+        borderRadius:'10px'
+    },
+})
 export default function Task (props){
+    const classes = useStyles();
 
-    const toggleCheckbox = () =>{
-        const taskId = props.task.id;
-        props.toggleCompleteTask(taskId);
-    }
-    const deleteTask = () => {
-        const taskId = props.task.id;
-        props.deleteTask(taskId);
+    const toggleCheckbox =async () =>{
+        const task = props.task;
+        const complete = props.task.complete;
+        props.toggleCompleteTask(task, complete);
     }
     return(
         <Card 
-        variant="elevation">
+        variant="elevation"
+        className={classes.card}>
             <CardHeader 
             title={
                 <ToolBar>
@@ -47,7 +53,7 @@ export default function Task (props){
                 <Typography>
                     complete
                 </Typography>
-                <IconButton onClick={deleteTask}>
+                <IconButton onClick={() => props.deleteTask(props.task._id)}>
                     <HighlightOffIcon fontSize='large'/>                        
                 </IconButton>
                 </ToolBar>

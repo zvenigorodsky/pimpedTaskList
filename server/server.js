@@ -1,30 +1,42 @@
+require('dotenv').config({ path:`.env.${process.env.NODE_ENV}`})
+
 const express = require('express');
 const app = express();
 const Router = require('./Routes/index');
 const utils = require('./utils/db_utils')
 const path = require('path')
+const cors = require('cors');
 
-app.use(express.json());
-
-app.use('/api/v1', Router);
-
-
-app.use(express.static(path.join(__dirname,"..",'dist')));
-
-app.get('/',(req, res, next) => {
-  res.sendFile(path.join(__dirname, "..", "dist", "index.html"));
-});
-
-const port= 3000;
-
-
-const run = async () => {
-
-  await utils.connectToDB();
-
-  app.listen(port,()=>{
-      console.log(`server listening on port ${port}...`);
-  })
+const MONGO_URI = () => {
+  return `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_USER_PWD}@localhost:${process.env.DB_PORT}/${process.env.MONGO_DB_NAME}`
 }
 
-run();
+const runDB = async () => {
+  await utils.connectToDB(MONGO_URI());
+}
+
+const configureServer = async () => {
+  
+  await runDB();
+  app.use(cors())
+  app.use(express.json());
+
+  app.use('/api/v1', Router);
+
+
+  app.use(express.static(path.join(__dirname,"..",'dist')));
+
+  app.get('/',(req, res, next) => {
+    res.sendFile(path.join(__dirname, "..", "dist", "index.html"));
+  });
+
+}
+
+const startServer = (port) =>   
+  app.listen(port,()=>{
+  console.log(`server listening on port ${port}...`);
+})
+  
+
+
+module.exports = {startServer, configureServer,app,MONGO_URI};

@@ -1,16 +1,11 @@
-require('dotenv').config();
-
 const {MongoClient} = require('mongodb');
 
 const internals = {}
 
-const MONGO_URI = () => {
-    return `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_USER_PWD}@localHost:${process.env.DB_PORT}/${process.env.MONGO_DB_NAME}`
-}
 
-const connectToDB = async () => {
+const connectToDB = async (uri) => {
     try{
-        const client = await new MongoClient(MONGO_URI()).connect();
+        const client = await new MongoClient(uri).connect();
         internals.client = client;
         internals.db = client.db();
 
@@ -21,31 +16,55 @@ const connectToDB = async () => {
 }
 
 const getCollectionOperations = (collectionName) => {
-    const findAll = async () => {
-        const result = await internals.db.collection(collectionName).find();
+    const find = async (query) => {
+        const result = await internals.db.collection(collectionName).find(query);
         return result
     }
-
+    const findAll = async (limit = '0') => {
+        const result = await internals.db.collection(collectionName).find().limit(limit);
+        return result
+    }
+    const aggregate = async (...pipeline) => {
+        const result = await internals.db.collection(collectionName).aggregate(...pipeline);
+        return result
+    }
     const findOne = async (query) => {
-        const result = await internals.db.collection(collectionName).find(query);
+        const result = await internals.db.collection(collectionName).findOne(query);
         return result
     }
     const insertOne = async (obj) => {
         const result = await internals.db.collection(collectionName).insertOne(obj);
         return result
     }
+    const insertMany = async (arr, options) => {
+        const result = await internals.db.collection(collectionName).insertMany(arr, options);
+        return result;
+    }
+    const updateOne = async (query, updateDoc, options) => {
+        const result = await internals.db.collection(collectionName).findOneAndUpdate(query, updateDoc, options);
+        return result;
+    }
     const deleteOne = async(query) => {
         const result = await internals.db.collection(collectionName).deleteOne(query);
         return result;
     }
+    const deleteMany = async(query) => {
+        const result = await internals.db.collection(collectionName).deleteMany(query);
+        return result;
+    }
     return {
         findOne,
+        find,
+        aggregate,
         findAll,
         insertOne,
         deleteOne,
+        deleteMany,
+        updateOne,
+        insertMany,
     }
 
 } 
 
-module.exports = {connectToDB,getCollectionOperations};
+module.exports = {connectToDB, getCollectionOperations, internals};
 

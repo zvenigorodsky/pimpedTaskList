@@ -2,18 +2,22 @@ import React from 'react';
 import {AppBar,
         Typography,
         IconButton,
-        Grid
+        Grid,
+        InputBase
     } from '@material-ui/core';
+import SearchIcon from '@material-ui/icons/Search';
 import NoteAddIcon from '@material-ui/icons/NoteAdd';
-import AddTaskForm from './AddTaskForm';
-import { connect } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 
-const useStyles = makeStyles({
+import AddTaskForm from './AddTaskForm';
+
+import { connect } from 'react-redux';
+
+const useStyles = makeStyles((theme) => ({
     header: {
         position:'relative',
     },
-});
+}));
  
 function Header (props){
 
@@ -34,7 +38,8 @@ function Header (props){
                     </Typography>
                 </Grid>
                 <Grid item xs={7} />
-                <Grid item xs={1}>
+                
+                <Grid item xs={1}  className={classes.addTaskBtn}>
                     <IconButton color='inherit' onClick={toggleShowForm}>
                         <NoteAddIcon  fontSize='large' />
                     </IconButton>
