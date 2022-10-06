@@ -9,13 +9,17 @@ import {Container,
         CardActions,
         TextField,
         Button,
+        Select,
+        MenuItem,
+        InputLabel,
+        FormControl
     } from '@material-ui/core'; 
 import { makeStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
 import axios from 'axios'
 import useGetTasks from '../hooks/useGetTasks'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme)=>({
     focusFormParent:{
         position:' fixed',
         top: '0',
@@ -28,8 +32,18 @@ const useStyles = makeStyles({
         marginTop: '50px',
         justifyContent: 'center',
     },
+    formControl: {
+        margin: theme.spacing(1),
+        minWidth: 120,
+    },
+    dateStart: {
+        marginLeft:'10px',
+    },
+    selectGroup:{
+        zIndex:'3500',
+    }
 
-})
+}))
 
 function AddTaskForm (props){ 
     const { mutate } = useGetTasks();
@@ -37,7 +51,10 @@ function AddTaskForm (props){
     const classes = useStyles(props);
 
     const [title,setTitle] = useState('');
+    const [group, setGroup] = useState('');
     const [description,setDescription] = useState('');
+    const [startDate, setStartDate] = useState(new Date().toISOString().slice(0,16));
+    const [endDate,setEndDate] = useState(new Date().toISOString().slice(0,16));
     const [task,setTask] = useState({});
 
     useEffect(()=>{
@@ -56,16 +73,36 @@ function AddTaskForm (props){
     }
     const handleDesChange = (e) => {
         const value = e.target.value;
+        if(value.length >= 100) return alert('Invalid title')
         setDescription(value)
+    }
+    const handleStartDateChange = (e) => {
+        const value = e.target.value;
+        setStartDate(value);
+    }
+    const handleEndDateChange = (e) => {
+        const value = e.target.value;
+        if(value < startDate) return alert('End date must be after task start')
+        setEndDate(value);
+    }
+    const handleGroupChange = (e) => {
+        const value = e.target.value;
+        setGroup(value);
     }
     const handleSubmit = (e) => {
         e.preventDefault();
+        if(endDate < startDate) return alert('End date must be after task start')
+        if(group === '') return alert('Must enter group')
         setTask({
             title: title,
             description: description,
-            complete: false
+            complete: false,
+            start: startDate,
+            end: endDate,
+            group: group,
         });
     }
+    
     return (
         <div className={classes.focusFormParent}>
             <Container maxWidth='xs'>
@@ -79,7 +116,7 @@ function AddTaskForm (props){
                                     </Typography>
                                 } />
                             </Grid>
-                            <Grid item xs={8}>
+                            <Grid item xs={6}>
                                 <CardContent>
                                     <TextField
                                         name='title'
@@ -87,6 +124,24 @@ function AddTaskForm (props){
                                         fullWidth
                                         value={title}
                                         onChange={handleTitleChange} />
+                                </CardContent>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <CardContent>
+                                <FormControl className={classes.formControl}>
+                                    <InputLabel>Group</InputLabel>
+                                        <Select
+                                            native
+                                            defaultValue={group}
+                                            onChange={handleGroupChange}
+                                            >
+                                            <option value={''}></option>
+                                            <option value={1}>hobby</option>
+                                            <option value={2}>work</option>
+                                            <option value={3}>chores</option>
+                                            <option value={4}>social</option>
+                                        </Select>   
+                                    </FormControl>
                                 </CardContent>
                             </Grid>
                             <Grid item xs={12}>
@@ -102,6 +157,27 @@ function AddTaskForm (props){
                                         onChange={handleDesChange}
                                     />
                                 </CardContent>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    label="Task starts at-"
+                                    type="datetime-local"
+                                    InputLabelProps={{
+                                        shrink:true,
+                                    }}
+                                    className={classes.dateStart}
+                                    value={startDate}
+                                    onChange={handleStartDateChange}  />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    label="Task ends at-"
+                                    type="datetime-local"
+                                    InputLabelProps={{
+                                        shrink:true,
+                                    }}
+                                    value={endDate}
+                                    onChange={handleEndDateChange}  />
                             </Grid>
                             <Grid item xs={8} />
                             <Grid item xs={4}>
@@ -122,6 +198,7 @@ function AddTaskForm (props){
         </div>
     )
 }
+
 
 const mapStateToProps = (state) => {
     return {};

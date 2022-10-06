@@ -7,7 +7,7 @@ const schemaMiddleware = (schema, fieldToCheck) =>
             await schema.validateAsync(field);
             next();
         }catch(err){
-            res.status(500).json({error_msg: err.details[0].message})
+            res.status(500).json({error_msg: (err.details[0].message || err)})
         }
     }
 

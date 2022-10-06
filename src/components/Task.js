@@ -5,25 +5,42 @@ import { CardHeader,
         CardActions,
         Typography,
         IconButton,
-        Checkbox  
+        Checkbox,
+        TextField,
+        Accordion,
+        AccordionSummery,
+        AccordionDetails,  
     } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import ToolBar from '@material-ui/core/Toolbar';
 import HighlightOffIcon from '@material-ui/icons/HighlightOff';
-import axios from 'axios'
+import {useTheme} from './ThemeContext';
 
-const useStyles = makeStyles({
-    card: {
-        boxShadow:'0 0 10px 2px rgba(173,173,173,0.75)',
-        borderRadius:'10px'
-    },
-})
 export default function Task (props){
+    const darkTheme = useTheme();
+
+    const useStyles = makeStyles({
+        card: {
+            background:darkTheme ?'grey':'white',
+            boxShadow:'0 0 10px 2px rgba(173,173,173,0.75)',
+            borderRadius:'10px'
+        },
+    })
     const classes = useStyles();
 
-    const toggleCheckbox =async () =>{
+    const toggleCheckbox = () =>{
         const task = props.task;
         props.toggleCompleteTask(task);
+    }
+    const handleStartDateChange = (e) => {
+        const startDate = e.target.value;
+        if(props.task.end < startDate) return alert('Start date cannot be after task end')
+        props.changeStartDate(startDate, props.task._id);
+    }
+    const handleEndDateChange = (e) => {
+        const endDate = e.target.value;
+        if(endDate < props.task.start) return alert('End date cannot be before task start')
+        props.changeEndDate(endDate, props.task._id)
     }
     return(
         <Card 
@@ -35,18 +52,37 @@ export default function Task (props){
                     <Typography variant='h5'>
                         {props.task.title}
                     </Typography>    
-                    
                 </ToolBar>
             }/>
             <CardContent>
-                    <Typography>
+                <Typography>
                     {props.task.description}
                 </Typography>
             </CardContent>
             <CardActions>
+            <TextField
+                label="Task starts at-"
+                type="datetime-local"
+                InputLabelProps={{
+                    shrink:true,
+                }}
+                value={props.task.start}
+                onChange={handleStartDateChange}/>
+            </CardActions>
+            <CardActions>
+            <TextField
+                label="Task ends at-"
+                type="datetime-local"
+                InputLabelProps={{
+                    shrink:true,
+                }}
+                value={props.task.end}
+                onChange={handleEndDateChange}/>
+            </CardActions>
+            <CardActions>
                 <ToolBar>
                 <Checkbox 
-                    color="primary" 
+                    color={darkTheme ?  "secondary": "primary" } 
                     checked={props.task.complete}
                     onChange={toggleCheckbox} />
                 <Typography>
