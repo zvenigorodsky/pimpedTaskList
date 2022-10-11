@@ -6,8 +6,9 @@ const deleteTask = require('../Controllers/deleteTask')
 const toggleComplete = require('../Controllers/toggleComplete')
 const deleteCompletedTasks = require('../Controllers/deleteCompletedTasks')
 const getSearchedTasks = require('../Controllers/getSearchedTasks')
+const handleTaskChange = require('../Controllers/handleTaskChange')
 const {schemaMiddleware} = require('../Schemas/schemaMiddleware') 
-const {taskSchema, IdSchema, toggleCompleteSchema,taskTitleSchema} = require('../Schemas/Schemas')
+const {taskSchema, IdSchema, toggleCompleteSchema,taskTitleSchema,dateSchema} = require('../Schemas/Schemas')
 
 router.get('/',  getAllTasks)
 router.get('/:title',schemaMiddleware(taskTitleSchema,'params'), getSearchedTasks)
@@ -15,6 +16,5 @@ router.post('/', schemaMiddleware(taskSchema, 'body'), createTask)
 router.delete('/completedTasks', deleteCompletedTasks )
 router.delete('/:_id', schemaMiddleware(IdSchema, 'params'), deleteTask)
 router.patch('/toggleCompleteField/:_id',schemaMiddleware(IdSchema, 'params'),schemaMiddleware(toggleCompleteSchema, 'body'),toggleComplete)
-
-
+router.patch('/updateTask/:_id',schemaMiddleware(IdSchema, 'params'),schemaMiddleware(dateSchema, 'body'),handleTaskChange)
 module.exports = router 

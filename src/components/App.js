@@ -1,13 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from './Header';
 import Tasks from './Tasks';
+import Timeline from './TimelineContainer';
+import { ThemeProvider } from './ThemeContext';
 
-export default function App (){
-    return(
+
+export default function App() {
+
+    return (
         <>
-        <Header /> 
-        <Tasks />
+            <ThemeProvider>
+                <Header />
+                <Timeline />
+                <Tasks />
+            </ThemeProvider>
         </>
-        )
-    }
+    )
+}
 
