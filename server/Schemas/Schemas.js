@@ -17,6 +17,10 @@ const taskSchema = Joi.object({
     start:Joi.string().max(24),
     end:Joi.string().max(24),
     group:Joi.string().max(24),
+    geometry:Joi.object({
+        type: Joi.string(),
+        polygon: Joi.array()
+    })
 })
 
 const IdSchema = Joi.object({
@@ -32,7 +36,11 @@ const toggleCompleteSchema = Joi.object({
 const dateSchema = Joi.object({
     start:Joi.string().max(24),
     end:Joi.string().max(24),
-    group:Joi.string().max(2),
+    group:Joi.string().max(24),
+})
+
+const groupSchema = Joi.object({
+    content: Joi.string().max(20),
 })
 
 module.exports = {
@@ -41,4 +49,5 @@ module.exports = {
     toggleCompleteSchema,
     taskTitleSchema,
     dateSchema, 
+    groupSchema
 };

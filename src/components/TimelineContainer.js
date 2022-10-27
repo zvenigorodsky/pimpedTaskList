@@ -1,17 +1,36 @@
 import React,{useEffect, useRef, useState} from 'react'
 import useGetTasks from '../hooks/useGetTasks'
+import useGetGroups from '../hooks/useGetGroups'
+import TimelineGroupSettings from './TimelineGroupSettings'
 import { Timeline } from 'vis-timeline/standalone'
 import { DataSet } from 'vis-data'
+import { Button, Typography } from '@material-ui/core'
 import axios from 'axios'
+import './TimelineStyle.css'
+import { connect } from 'react-redux'
+import { makeStyles } from '@material-ui/core/styles'
+import {useTheme} from './ThemeContext'
 
-const styles = {
-    position:'absolute',
-    margin: '0 0 0 740px',
-    top:'100px'
-}
-export default function TimelineComponent(){
+function TimelineComponent(props){
+    
+    const darkTheme = useTheme();
+    
+    const useStyles = makeStyles((theme)=>({
+        styles:{
+            position:'absolute',
+            marginLeft:'55%',
+            top:'100px',
+        },
+        editBtn:{
+            color:darkTheme ? 'white' : 'black'
+        }
+    
+    }))
+    
+    const classes = useStyles(props)
 
     const {tasks, isLoading, isError, mutate} = useGetTasks('')
+    const {groups, isLoadingGroups, isErrorGroups, mutateGroups} = useGetGroups()
 
     const TimelineDiv = useRef()
     const timeline = useRef()
@@ -31,7 +50,6 @@ export default function TimelineComponent(){
             },
             onMove: updateTimelineTask,
             onRemove: removeTimelineTask,
-            background: '#f5f5f5',
               
         };
         timeline.current = new Timeline(container,items, groups, options);
@@ -50,7 +68,7 @@ export default function TimelineComponent(){
             await axios.patch(`/api/v1/tasks/updateTask/${item._id}`,{
             start: item.start.toISOString().slice(0,16),
             end: item.end.toISOString().slice(0,16),
-            group:JSON.stringify(item.group),
+            group:item.group,
         })
         mutate()
         callback(item)
@@ -60,33 +78,38 @@ export default function TimelineComponent(){
     }
 
     useEffect(()=>{
-        const groups = [
-            {
-            id: 1,
-            content: 'hobby'
-        },
-        {
-            id: 2,
-            content: 'work'
-        },
-        {
-            id: 3,
-            content: 'chores'
-        },
-        {
-            id: 4,
-            content: 'social'
-        }
-    ];
         timeline.current.setData({
             groups: groups,
             items:tasks,
         })
-    },[tasks])
+    },[tasks, groups])
 
+    const toggleTimelineGroupSettings = () => {
+        props.toggleTimelineGroupSettings()
+    }
     return(
-        <>
-            <div style={styles} ref={TimelineDiv}></div>
+        <>  
+            <Button
+                className={classes.styles}
+                onClick={toggleTimelineGroupSettings}>
+                <Typography className={classes.editBtn} variant='h6'>Edit Groups</Typography>
+            </Button>
+            <div className={classes.styles} ref={TimelineDiv}></div>
+
+            {props.showTimelineGroupSettings 
+                && <TimelineGroupSettings/>}
         </>
     );
 }
+const mapStateToProps = (state) => {
+    return{
+        showTimelineGroupSettings : state.showTimelineGroupSettings,
+    }
+}
+
+const mapDispatchToProps = (dispatch) => {
+    return{
+        toggleTimelineGroupSettings: () => {dispatch({type:'TOGGLE_TIMELINE_GROUP_SETTINGS'})}
+    }
+}
+export default connect(mapStateToProps,mapDispatchToProps)(TimelineComponent)
