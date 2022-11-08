@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState,useEffect } from 'react';
+import { useState,useEffect,Fragment } from 'react';
 import {Container,
         Card,
         Grid,
@@ -18,6 +18,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
 import axios from 'axios'
 import useGetTasks from '../hooks/useGetTasks'
+import useGetGroups from '../hooks/useGetGroups'
+import MapComponent from './MapComponent'
 
 const useStyles = makeStyles((theme)=>({
     focusFormParent:{
@@ -30,24 +32,37 @@ const useStyles = makeStyles((theme)=>({
     },
     CardForm:{
         marginTop: '50px',
+        width:'444px',
         justifyContent: 'center',
     },
     formControl: {
         margin: theme.spacing(1),
-        minWidth: 120,
+        minWidth: 200,
     },
     dateStart: {
         marginLeft:'10px',
     },
     selectGroup:{
         zIndex:'3500',
+    },
+    container:{
+        margin:'auto',
+        display:'flex', 
+    },
+    mapCard:{
+        marginTop: '50px',
+        marginLeft:'10px',
+        padding:'10px'
+    },
+    map:{
+        width:'500px',
+        height:'400px'
     }
-
 }))
 
 function AddTaskForm (props){ 
     const { mutate } = useGetTasks();
-    
+    const { groups } = useGetGroups();
     const classes = useStyles(props);
 
     const [title,setTitle] = useState('');
@@ -56,6 +71,7 @@ function AddTaskForm (props){
     const [startDate, setStartDate] = useState(new Date().toISOString().slice(0,16));
     const [endDate,setEndDate] = useState(new Date().toISOString().slice(0,16));
     const [task,setTask] = useState({});
+    const [poly, setPoly] = useState([]);
 
     useEffect(()=>{
         async function postTask(){
@@ -89,10 +105,14 @@ function AddTaskForm (props){
         const value = e.target.value;
         setGroup(value);
     }
+    const handlePolygon = (coords) => {
+        setPoly(() => coords)
+    }
     const handleSubmit = (e) => {
         e.preventDefault();
         if(endDate < startDate) return alert('End date must be after task start')
         if(group === '') return alert('Must enter group')
+        if(poly.length === 0 ) return alert('Draw task polygon before submiting')
         setTask({
             title: title,
             description: description,
@@ -100,12 +120,16 @@ function AddTaskForm (props){
             start: startDate,
             end: endDate,
             group: group,
-        });
+            geometry:{
+                type: 'Polygon',
+                polygon: poly,
+            }},
+        );
     }
     
     return (
         <div className={classes.focusFormParent}>
-            <Container maxWidth='xs'>
+            <Container className={classes.container} maxWidth='md'>
                 <Card className={classes.CardForm}>
                     <form onSubmit={handleSubmit}>
                         <Grid container>
@@ -135,11 +159,18 @@ function AddTaskForm (props){
                                             defaultValue={group}
                                             onChange={handleGroupChange}
                                             >
-                                            <option value={''}></option>
-                                            <option value={1}>hobby</option>
-                                            <option value={2}>work</option>
-                                            <option value={3}>chores</option>
-                                            <option value={4}>social</option>
+                                            {groups.length === 0 
+                                            ? <option value={''}></option>
+                                            : groups.map((group, index) => {
+                                                if(index === 0) return(
+                                                    <Fragment key={index}>
+                                                    <option value={''}></option>
+                                                    <option value={group._id}>{group.content}</option>
+                                                    </Fragment>
+                                                )
+                                                return <option key={index} value={group._id}>{group.content}</option>
+                                            })
+                                            }
                                         </Select>   
                                     </FormControl>
                                 </CardContent>
@@ -191,8 +222,15 @@ function AddTaskForm (props){
                                     </Button>
                                 </CardActions>
                             </Grid>
+                            
                         </Grid>
                     </form>
+                </Card>
+                <Card className={classes.mapCard}>
+                    <Typography variant='h6'>
+                        Draw task polygon
+                    </Typography>
+                    <MapComponent polygonGeoJSON={handlePolygon} addTask={true}/>
                 </Card>
             </Container>
         </div>
