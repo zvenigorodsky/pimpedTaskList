@@ -1,5 +1,5 @@
-import React from "react";
-import { useState, useEffect, Fragment } from "react";
+import React from "react"
+import { useState, useEffect, Fragment } from "react"
 import {
   Container,
   Card,
@@ -11,16 +11,14 @@ import {
   TextField,
   Button,
   Select,
-  MenuItem,
   InputLabel,
   FormControl,
-} from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
-import { connect } from "react-redux";
-import axios from "axios";
-import useGetTasks from "../hooks/useGetTasks";
-import useGetGroups from "../hooks/useGetGroups";
-import MapComponent from "./MapComponent";
+} from "@material-ui/core"
+import { makeStyles } from "@material-ui/core/styles"
+import { connect } from "react-redux"
+import axios from "axios"
+import useFetch from "../hooks/useFetch"
+import MapComponent from "./MapComponent"
 
 const useStyles = makeStyles(theme => ({
   focusFormParent: {
@@ -59,63 +57,63 @@ const useStyles = makeStyles(theme => ({
     width: "500px",
     height: "400px",
   },
-}));
+}))
 
 function AddTaskForm(props) {
-  const { mutate } = useGetTasks();
-  const { groups } = useGetGroups();
-  const classes = useStyles(props);
+  const { mutate } = useFetch("/tasks")
+  const { data: groups } = useFetch("/groups")
+  const classes = useStyles(props)
 
-  const [title, setTitle] = useState("");
-  const [group, setGroup] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState("")
+  const [group, setGroup] = useState("")
+  const [description, setDescription] = useState("")
   const [startDate, setStartDate] = useState(
     new Date().toISOString().slice(0, 16)
-  );
-  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 16));
-  const [task, setTask] = useState({});
-  const [poly, setPoly] = useState([]);
+  )
+  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 16))
+  const [task, setTask] = useState({})
+  const [poly, setPoly] = useState([])
 
   useEffect(() => {
     async function postTask() {
-      if (Object.keys(task).length === 0) return;
-      await axios.post("/api/v1/tasks/", task);
-      mutate();
-      props.toggleAddTaskForm();
+      if (Object.keys(task).length === 0) return
+      await axios.post("/api/v1/tasks/", task)
+      mutate()
+      props.toggleAddTaskForm()
     }
-    postTask();
-  }, [task, setTask]);
+    postTask()
+  }, [task, setTask])
 
   const handleTitleChange = e => {
-    const value = e.target.value;
-    setTitle(value);
-  };
+    const value = e.target.value
+    setTitle(value)
+  }
   const handleDesChange = e => {
-    const value = e.target.value;
-    if (value.length >= 100) return alert("Invalid title");
-    setDescription(value);
-  };
+    const value = e.target.value
+    if (value.length >= 100) return alert("Invalid title")
+    setDescription(value)
+  }
   const handleStartDateChange = e => {
-    const value = e.target.value;
-    setStartDate(value);
-  };
+    const value = e.target.value
+    setStartDate(value)
+  }
   const handleEndDateChange = e => {
-    const value = e.target.value;
-    if (value < startDate) return alert("End date must be after task start");
-    setEndDate(value);
-  };
+    const value = e.target.value
+    if (value < startDate) return alert("End date must be after task start")
+    setEndDate(value)
+  }
   const handleGroupChange = e => {
-    const value = e.target.value;
-    setGroup(value);
-  };
+    const value = e.target.value
+    setGroup(value)
+  }
   const handlePolygon = coords => {
-    setPoly(() => coords);
-  };
+    setPoly(() => coords)
+  }
   const handleSubmit = e => {
-    e.preventDefault();
-    if (endDate < startDate) return alert("End date must be after task start");
-    if (group === "") return alert("Must enter group");
-    if (poly.length === 0) return alert("Draw task polygon before submiting");
+    e.preventDefault()
+    if (endDate < startDate) return alert("End date must be after task start")
+    if (group === "") return alert("Must enter group")
+    if (poly.length === 0) return alert("Draw task polygon before submiting")
     setTask({
       title: title,
       description: description,
@@ -127,8 +125,8 @@ function AddTaskForm(props) {
         type: "Polygon",
         polygon: poly,
       },
-    });
-  };
+    })
+  }
 
   return (
     <div className={classes.focusFormParent}>
@@ -173,12 +171,12 @@ function AddTaskForm(props) {
                                   {group.content}
                                 </option>
                               </Fragment>
-                            );
+                            )
                           return (
                             <option key={index} value={group._id}>
                               {group.content}
                             </option>
-                          );
+                          )
                         })
                       )}
                     </Select>
@@ -244,19 +242,19 @@ function AddTaskForm(props) {
         </Card>
       </Container>
     </div>
-  );
+  )
 }
 
 const mapStateToProps = state => {
-  return {};
-};
+  return {}
+}
 
 const mapDispatchToProps = dispatch => {
   return {
     toggleAddTaskForm: () => {
-      dispatch({ type: "TOGGLE_ADD_TASK_FORM" });
+      dispatch({ type: "TOGGLE_ADD_TASK_FORM" })
     },
-  };
-};
+  }
+}
 
-export default connect(mapStateToProps, mapDispatchToProps)(AddTaskForm);
+export default connect(mapStateToProps, mapDispatchToProps)(AddTaskForm)
