@@ -6,7 +6,7 @@ import { Typography,
         Button,
         InputBase
     }from '@material-ui/core';
-import {useTheme, useThemeUpdate} from './ThemeContext'
+import {useTheme } from './ThemeContext'
 import { makeStyles } from '@material-ui/core/styles';
 import axios from 'axios';
 import useGetTasks from '../hooks/useGetTasks';

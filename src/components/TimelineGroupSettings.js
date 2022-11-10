@@ -46,7 +46,7 @@ const useStyles = makeStyles(theme=>({
 function TimelineGroupSettings(props){
     const classes = useStyles(props)
 
-    const {groups, isLoadingGroups, isErrorGroups, mutateGroups} = useGetGroups()
+    const {groups, isLoadingGroups, mutateGroups} = useGetGroups()
 
     const [newGroup, setNewGroup] = useState('');
     const hideGroupSettings = () => {

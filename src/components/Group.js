@@ -79,10 +79,10 @@ export default function Group(props){
                 <HighlightOffIcon/>
             </IconButton>
             {editContent
-            ? <IconButton  className={classes.groupBtn}onClick={updateContent}>
+            ? <IconButton  className={classes.groupBtn} onClick={updateContent}>
                 <DoneIcon/>
             </IconButton>  
-            :<IconButton  className={classes.groupBtn}onClick={() => setEditContent(prev => !prev)}>
+            :<IconButton  className={classes.groupBtn} onClick={() => setEditContent(prev => !prev)}>
                 <EditIcon/>
             </IconButton>  
             }

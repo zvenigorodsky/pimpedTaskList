@@ -1,8 +1,6 @@
 import React,{useEffect, useRef, useState} from 'react'
-import { Typography } from '@material-ui/core'
 import Map from 'ol/Map'  
 import View from 'ol/View'
-import olPixel from 'ol/pixel'
 import ImageLayer from 'ol/layer/image'
 import Static from 'ol/source/ImageStatic'
 import {Vector as VectorSource} from 'ol/source'
@@ -18,32 +16,38 @@ import { makeStyles } from '@material-ui/core/styles'
 import useGetTasks from '../hooks/useGetTasks'
 import Overlay from 'ol/Overlay'
 
+const useStyles = makeStyles((theme)=> ({
+    onAddTaskOpen:{
+        background:'lightgrey',
+        width: '440px',
+        height:  '340px',
+        marginLeft:  '0',
+        marginTop:  '0',
+    },
+    map: {
+        background:'lightgrey',
+        width: '600px',
+        height: '250px',
+        marginLeft: '55%',
+        marginTop: '125px',
+    },
+    popup:{
+        fontFamily: "Roboto, Helvetica, Arial, sans-serif",
+        position:'absolute',
+        backgroundColor:'white',
+        boxShadow:'0 1px 4px rgba(0,0,0,0.2)',
+        padding:'5px',
+        borderRadius:'10px',
+        border:'1px solid #cccccc',
+        bottom:'5px',
+        miWidth:'280px',
+    }
+}))
 
 export default function MapComponent(props){
 
     const {tasks, isLoading, mutate} = useGetTasks('')
     const [polygons, setPolygons] = useState([])
-
-    const useStyles = makeStyles((theme)=> ({
-        map:{
-            background:'lightgrey',
-            width: !props.addTask ? '600px' :'440px',
-            height: !props.addTask ? '250px' : '340px',
-            marginLeft: !props.addTask ?'55%': '0',
-            marginTop: !props.addTask ?'125px': '0'
-        },
-        popup:{
-            fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-            position:'absolute',
-            backgroundColor:'white',
-            boxShadow:'0 1px 4px rgba(0,0,0,0.2)',
-            padding:'5px',
-            borderRadius:'10px',
-            border:'1px solid #cccccc',
-            bottom:'5px',
-            miWidth:'280px',
-        }
-    }))
     
     
     const classes = useStyles()
@@ -160,9 +164,9 @@ export default function MapComponent(props){
             
         }
     },[tasks,polygons,setPolygons])
-    return(
+    return (
         <>
-            <div ref={mapRef} className={classes.map}></div>
+            <div ref={mapRef} className={!props.addTask ? classes.map : classes.onAddTaskOpen}></div>
             <div ref={overlayContainer} className={classes.popup}></div>
         </>
     )
