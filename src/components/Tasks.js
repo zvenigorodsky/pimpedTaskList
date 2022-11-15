@@ -9,9 +9,11 @@ import {
 } from "@material-ui/core"
 import { useTheme } from "./ThemeContext"
 import { makeStyles } from "@material-ui/core/styles"
-import axios from "axios"
+import axiosActions from "../utils/axiosRequests"
 import useFetch from "../hooks/useFetch"
 import SearchIcon from "@material-ui/icons/Search"
+
+const actions = axiosActions()
 
 const useStyles = darkTheme =>
   makeStyles(theme => ({
@@ -103,11 +105,11 @@ function Tasks(props) {
   const showAllTasks = () => {
     setHideComplete(false)
   }
-  const deleteTask = id => {
+  const deleteTask = async id => {
     try {
       const optimisticData = tasks.filter(task => task.id !== id)
       mutate(optimisticData, false)
-      axios.delete(`/api/v1/tasks/${id}`)
+      await actions.deleteTask(id)
       mutate()
     } catch (err) {
       console.log(err)
@@ -123,9 +125,7 @@ function Tasks(props) {
         complete: !task.complete,
       }
       mutate(optimisticState, false)
-      await axios.patch(`/api/v1/tasks/toggleCompleteField/${id}`, {
-        complete: !task.complete,
-      })
+      await actions.toggleCompleteTask(id, task)
       mutate()
     } catch (err) {
       console.log(err)
@@ -135,7 +135,7 @@ function Tasks(props) {
     try {
       const optimisticState = tasks.filter(task => !task.complete)
       mutate(optimisticState, false)
-      await axios.delete("/api/v1/tasks/completedTasks")
+      await actions.deleteCompleteTasks()
       mutate()
     } catch (err) {
       console.log(err)
@@ -148,7 +148,7 @@ function Tasks(props) {
   }
   const handleStartDateChange = async (newDate, id) => {
     try {
-      await axios.patch(`/api/v1/tasks/updateTask/${id}`, { start: newDate })
+      await actions.patchTask(id, { start: newDate })
       mutate()
     } catch (err) {
       console.log(err)
@@ -156,7 +156,7 @@ function Tasks(props) {
   }
   const handleEndDateChange = async (newDate, id) => {
     try {
-      await axios.patch(`/api/v1/tasks/updateTask/${id}`, { end: newDate })
+      await actions.patchTask(id, { end: newDate })
       mutate()
     } catch (err) {
       console.log(err)

@@ -14,17 +14,19 @@ import ToolBar from "@material-ui/core/Toolbar"
 import HighlightOffIcon from "@material-ui/icons/HighlightOff"
 import { useTheme } from "./ThemeContext"
 
-export default function Task(props) {
-  const darkTheme = useTheme()
-
-  const useStyles = makeStyles({
+const useStyles = darkTheme =>
+  makeStyles({
     card: {
       background: darkTheme ? "grey" : "white",
       boxShadow: "0 0 10px 2px rgba(173,173,173,0.75)",
       borderRadius: "10px",
     },
   })
-  const classes = useStyles()
+
+export default function Task(props) {
+  const darkTheme = useTheme()
+
+  const classes = useStyles(darkTheme)()
 
   const toggleCheckbox = () => {
     const task = props.task

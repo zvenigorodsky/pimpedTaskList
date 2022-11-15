@@ -1,20 +1,13 @@
 import React, { useEffect, useRef, useState } from "react"
 import Map from "ol/Map"
 import View from "ol/View"
-import ImageLayer from "ol/layer/image"
-import Static from "ol/source/ImageStatic"
-import { Vector as VectorSource } from "ol/source"
 import Projection from "ol/proj/Projection"
 import { getCenter } from "ol/extent"
-import Feature from "ol/Feature"
-import { Draw, Modify, Snap } from "ol/interaction"
-import img from "../../public/Office.png"
-import VectorLayer from "ol/layer/Vector"
-import Polygon from "ol/geom/Polygon"
 import Point from "ol/geom/Point"
 import { makeStyles } from "@material-ui/core/styles"
-import useFetch from "../hooks/useFetch"
 import Overlay from "ol/Overlay"
+import VectorLayerComponent from "./VectorLayerComponent"
+import RasterLayer from "./RasterLayer"
 
 const useStyles = makeStyles(theme => ({
   onAddTaskOpen: {
@@ -45,24 +38,19 @@ const useStyles = makeStyles(theme => ({
 }))
 
 export default function MapComponent(props) {
-  const { data: tasks, isLoading, mutate } = useFetch("/tasks")
-  const [polygons, setPolygons] = useState([])
-
+  const extent = [0, 0, 819, 460]
+  const projection = new Projection({
+    code: "xkcd-image",
+    units: "pixels",
+    extent: extent,
+  })
   const classes = useStyles()
   const mapRef = useRef()
-  const map = useRef()
-  const source = useRef()
+  const [map, setMap] = useState(null)
   const overlay = useRef()
   const overlayContainer = useRef()
 
   useEffect(() => {
-    const extent = [0, 0, 819, 460]
-    const projection = new Projection({
-      code: "xkcd-image",
-      units: "pixels",
-      extent: extent,
-    })
-
     overlay.current = new Overlay({
       element: overlayContainer.current,
       autoPan: {
@@ -72,27 +60,8 @@ export default function MapComponent(props) {
       },
     })
 
-    source.current = new VectorSource({})
-    const raster = new ImageLayer({
-      source: new Static({
-        url: img,
-        projection: projection,
-        imageExtent: extent,
-      }),
-    })
-
-    const vector = new VectorLayer({
-      source: source.current,
-      style: {
-        "fill-color": "rgba(255, 255, 255, 0.2)",
-        "stroke-color": "#ffcc33",
-        "stroke-width": 2,
-        "circle-radius": 7,
-        "circle-fill-color": "#ffcc33",
-      },
-    })
-    map.current = new Map({
-      layers: [raster, vector],
+    const mapObj = new Map({
+      layers: [],
       overlays: [overlay.current],
       target: mapRef.current,
       view: new View({
@@ -102,27 +71,15 @@ export default function MapComponent(props) {
         maxZoom: 3,
       }),
     })
+    setMap(() => mapObj)
+  }, [])
 
-    if (props.addTask) {
-      const draw = new Draw({
-        source: source.current,
-        type: "Polygon",
-      })
-
-      draw.on("drawend", e => {
-        const feature = e.feature
-        if (feature) {
-          const coord = feature.getGeometry().getCoordinates()
-          props.polygonGeoJSON(coord)
-          map.current.removeInteraction(draw)
-        }
-      })
-      map.current.addInteraction(draw)
-    }
-    map.current.on("pointermove", e => {
+  useEffect(() => {
+    if (!map) return
+    map.on("pointermove", e => {
       const pixel = e.pixel
       const coords = e.coordinate
-      const feature = map.current.getFeaturesAtPixel(pixel)
+      const feature = map.getFeaturesAtPixel(pixel)
       if (
         feature.length > 0 &&
         !(feature[0].values_.geometry instanceof Point)
@@ -133,39 +90,23 @@ export default function MapComponent(props) {
       }
       overlay.current.setPosition(undefined)
     })
-  }, [])
-  useEffect(() => {
-    if (tasks) {
-      setPolygons([])
-      tasks.map(task => {
-        const poly = new Feature({
-          type: "Polygon",
-          geometry: new Polygon(task.geometry.polygon),
-          name: task.title,
-        })
-        setPolygons(prev => [...prev, poly])
-      })
-    }
-  }, [tasks, mutate])
-
-  useEffect(() => {
-    if (!props.addTask) {
-      source.current.clear()
-
-      source.current.addFeatures(polygons)
-
-      const modify = new Modify({ source: source.current })
-
-      map.current.addInteraction(modify)
-    }
-  }, [tasks, polygons, setPolygons])
+  }, [map, setMap])
   return (
     <>
       <div
         ref={mapRef}
         className={!props.addTask ? classes.map : classes.onAddTaskOpen}
       >
-        {/* <VectorLayers map={map}/> */}
+        {map && (
+          <>
+            <RasterLayer map={map} />
+            <VectorLayerComponent
+              map={map}
+              addTask={props.addTask}
+              polygonGeoJSON={props.polygonGeoJSON}
+            />
+          </>
+        )}
       </div>
       <div ref={overlayContainer} className={classes.popup}></div>
     </>

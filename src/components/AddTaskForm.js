@@ -1,5 +1,6 @@
-import React from "react"
+import React, { useCallback } from "react"
 import { useState, useEffect, Fragment } from "react"
+import { useFormik } from "formik"
 import {
   Container,
   Card,
@@ -15,10 +16,12 @@ import {
   FormControl,
 } from "@material-ui/core"
 import { makeStyles } from "@material-ui/core/styles"
-import { connect } from "react-redux"
-import axios from "axios"
+import { useDispatch } from "react-redux"
+import axiosActions from "../utils/axiosRequests"
 import useFetch from "../hooks/useFetch"
 import MapComponent from "./MapComponent"
+
+const actions = axiosActions()
 
 const useStyles = makeStyles(theme => ({
   focusFormParent: {
@@ -59,80 +62,67 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-function AddTaskForm(props) {
+export default function AddTaskForm(props) {
   const { mutate } = useFetch("/tasks")
   const { data: groups } = useFetch("/groups")
   const classes = useStyles(props)
 
-  const [title, setTitle] = useState("")
-  const [group, setGroup] = useState("")
-  const [description, setDescription] = useState("")
-  const [startDate, setStartDate] = useState(
-    new Date().toISOString().slice(0, 16)
+  const dispatch = useDispatch()
+  const toggleAddTaskForm = useCallback(
+    () => dispatch({ type: "TOGGLE_ADD_TASK_FORM" }),
+    [dispatch]
   )
-  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 16))
+
+  const formik = useFormik({
+    initialValues: {
+      title: "",
+      group: "",
+      description: "",
+      startDate: new Date().toISOString().slice(0, 16),
+      endDate: new Date().toISOString().slice(0, 16),
+    },
+    onSubmit: values => {
+      if (values.endDate < values.startDate)
+        return alert("End date must be after task start")
+      if (values.group === "") return alert("Must enter group")
+      if (poly.length === 0) return alert("Draw task polygon before submiting")
+      setTask({
+        title: values.title,
+        description: values.description,
+        complete: false,
+        start: values.startDate,
+        end: values.endDate,
+        group: values.group,
+        geometry: {
+          type: "Polygon",
+          polygon: poly,
+        },
+      })
+    },
+  })
+
   const [task, setTask] = useState({})
   const [poly, setPoly] = useState([])
 
   useEffect(() => {
     async function postTask() {
       if (Object.keys(task).length === 0) return
-      await axios.post("/api/v1/tasks/", task)
+      await actions.postTask(task)
       mutate()
-      props.toggleAddTaskForm()
+      toggleAddTaskForm()
     }
     postTask()
   }, [task, setTask])
 
-  const handleTitleChange = e => {
-    const value = e.target.value
-    setTitle(value)
-  }
-  const handleDesChange = e => {
-    const value = e.target.value
-    if (value.length >= 100) return alert("Invalid title")
-    setDescription(value)
-  }
-  const handleStartDateChange = e => {
-    const value = e.target.value
-    setStartDate(value)
-  }
-  const handleEndDateChange = e => {
-    const value = e.target.value
-    if (value < startDate) return alert("End date must be after task start")
-    setEndDate(value)
-  }
-  const handleGroupChange = e => {
-    const value = e.target.value
-    setGroup(value)
-  }
   const handlePolygon = coords => {
     setPoly(() => coords)
-  }
-  const handleSubmit = e => {
-    e.preventDefault()
-    if (endDate < startDate) return alert("End date must be after task start")
-    if (group === "") return alert("Must enter group")
-    if (poly.length === 0) return alert("Draw task polygon before submiting")
-    setTask({
-      title: title,
-      description: description,
-      complete: false,
-      start: startDate,
-      end: endDate,
-      group: group,
-      geometry: {
-        type: "Polygon",
-        polygon: poly,
-      },
-    })
   }
 
   return (
     <div className={classes.focusFormParent}>
       <Container className={classes.container} maxWidth="md">
         <Card className={classes.CardForm}>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={formik.handleSubmit}>
             <Grid container>
               <Grid item xs={12}>
                 <CardHeader
@@ -142,11 +132,12 @@ function AddTaskForm(props) {
               <Grid item xs={6}>
                 <CardContent>
                   <TextField
+                    id="title"
                     name="title"
                     label="Task Title"
                     fullWidth
-                    value={title}
-                    onChange={handleTitleChange}
+                    value={formik.values.title}
+                    onChange={formik.handleChange}
                   />
                 </CardContent>
               </Grid>
@@ -155,9 +146,10 @@ function AddTaskForm(props) {
                   <FormControl className={classes.formControl}>
                     <InputLabel>Group</InputLabel>
                     <Select
+                      id="group"
                       native
-                      defaultValue={group}
-                      onChange={handleGroupChange}
+                      defaultValue={formik.values.group}
+                      onChange={formik.handleChange}
                     >
                       {groups.length === 0 ? (
                         <option value={""}></option>
@@ -192,32 +184,34 @@ function AddTaskForm(props) {
                     multiline
                     fullWidth
                     rows={4}
-                    value={description}
-                    onChange={handleDesChange}
+                    value={formik.values.description}
+                    onChange={formik.handleChange}
                   />
                 </CardContent>
               </Grid>
               <Grid item xs={6}>
                 <TextField
+                  id="startDate"
                   label="Task starts at-"
                   type="datetime-local"
                   InputLabelProps={{
                     shrink: true,
                   }}
                   className={classes.dateStart}
-                  value={startDate}
-                  onChange={handleStartDateChange}
+                  value={formik.values.startDate}
+                  onChange={formik.handleChange}
                 />
               </Grid>
               <Grid item xs={6}>
                 <TextField
+                  id="endDate"
                   label="Task ends at-"
                   type="datetime-local"
                   InputLabelProps={{
                     shrink: true,
                   }}
-                  value={endDate}
-                  onChange={handleEndDateChange}
+                  value={formik.values.endDate}
+                  onChange={formik.handleChange}
                 />
               </Grid>
               <Grid item xs={8} />
@@ -244,17 +238,3 @@ function AddTaskForm(props) {
     </div>
   )
 }
-
-const mapStateToProps = state => {
-  return {}
-}
-
-const mapDispatchToProps = dispatch => {
-  return {
-    toggleAddTaskForm: () => {
-      dispatch({ type: "TOGGLE_ADD_TASK_FORM" })
-    },
-  }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(AddTaskForm)
