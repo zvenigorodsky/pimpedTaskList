@@ -5,8 +5,10 @@ import { makeStyles } from "@material-ui/core/styles"
 import HighlightOffIcon from "@material-ui/icons/HighlightOff"
 import EditIcon from "@material-ui/icons/Edit"
 import DoneIcon from "@material-ui/icons/Done"
-import axios from "axios"
+import axiosActions from "../utils/axiosRequests"
 import useFetch from "../hooks/useFetch"
+
+const actions = axiosActions()
 
 const useStyles = makeStyles({
   group: {
@@ -40,9 +42,7 @@ export default function Group(props) {
         content: content,
       }
       mutate(optimisticData, false)
-      await axios.patch(`api/v1/groups/updateContent/${props.group._id}`, {
-        content: content,
-      })
+      await actions.patchGroup(props.group._id, content)
       setEditContent(prev => !prev)
       mutate()
     } catch (err) {
@@ -58,7 +58,7 @@ export default function Group(props) {
 
       const optimisticData = groups.filter(group => group._id !== id)
       mutate(optimisticData, false)
-      await axios.delete(`api/v1/groups/${props.group._id}`)
+      await deleteGroup(props.group._id)
       mutate()
     } catch (err) {
       console.log(err)

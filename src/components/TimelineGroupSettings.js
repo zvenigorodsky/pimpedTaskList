@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useCallback } from "react"
 import {
   Container,
   Card,
@@ -11,10 +11,10 @@ import {
 import { makeStyles } from "@material-ui/core/styles"
 import HighlightOffIcon from "@material-ui/icons/HighlightOff"
 import AddIcon from "@material-ui/icons/Add"
-import { connect } from "react-redux"
+import { useDispatch } from "react-redux"
 import useFetch from "../hooks/useFetch"
 import Group from "./Group"
-import axios from "axios"
+import axiosActions from "../utils/axiosRequests"
 
 const useStyles = makeStyles(theme => ({
   focusFormParent: {
@@ -44,19 +44,25 @@ const useStyles = makeStyles(theme => ({
     marginTop: "12px",
   },
 }))
-function TimelineGroupSettings(props) {
+export default function TimelineGroupSettings(props) {
   const classes = useStyles(props)
+
+  const dispatch = useDispatch()
+  const toggleTimelineGroupSettings = useCallback(
+    () => dispatch({ type: "TOGGLE_TIMELINE_GROUP_SETTINGS" }),
+    [dispatch]
+  )
 
   const { data: groups, isLoading, mutate } = useFetch("/groups")
 
   const [newGroup, setNewGroup] = useState("")
   const hideGroupSettings = () => {
-    props.toggleTimelineGroupSettings()
+    toggleTimelineGroupSettings()
   }
 
   const addGroup = async () => {
     try {
-      await axios.post("api/v1/groups", { content: newGroup })
+      await axiosActions.posetGroup(newGroup)
       mutate()
       setNewGroup("")
     } catch (err) {
@@ -109,18 +115,3 @@ function TimelineGroupSettings(props) {
     </div>
   )
 }
-const mapStateToProps = state => {
-  return {}
-}
-
-const mapDispatchToProps = dispatch => {
-  return {
-    toggleTimelineGroupSettings: () => {
-      dispatch({ type: "TOGGLE_TIMELINE_GROUP_SETTINGS" })
-    },
-  }
-}
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(TimelineGroupSettings)
