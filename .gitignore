@@ -3,5 +3,4 @@ node_modules
 .env.production
 .env.test
 /dist
-/public
 package-lock.json
