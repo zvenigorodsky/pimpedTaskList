@@ -5,6 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "command": "npm run start-dev",
+            "name": "Run pimpedTaskList",
+            "request": "launch",
+            "type": "node-terminal",
+            "env": {
+                "NODE_ENV": "dev",
+                "MONGO_DB_URI": "mongodb://127.0.0.1:27017",
+                "MONGO_ADMIN": "myUserAdmin",
+                "MONGO_ADMIN_PWD": "password",
+                "MONGO_USER": "user",
+                "MONGO_USER_PWD": "password",
+                "DB_PORT": "27017",
+                "MONGO_DB_NAME": "TaskList",
+            },
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "Mocha Tests",
@@ -19,9 +35,8 @@
                 "${workspaceFolder}/server/test"
             ],
             "internalConsoleOptions": "openOnSessionStart",
-            "env": {
-                "NODE_ENV": "test"
-            }
+            
+            
             // "skipFiles": [
             //     "<node_internals>/**"
             // ],
