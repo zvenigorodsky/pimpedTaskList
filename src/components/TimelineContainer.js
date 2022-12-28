@@ -1,20 +1,19 @@
-import React, { useEffect, useRef, useState } from "react";
-import useGetTasks from "../hooks/useGetTasks";
-import useGetGroups from "../hooks/useGetGroups";
+import React, { useEffect, useRef, useCallback } from "react";
+import useFetch from "../hooks/useFetch";
 import TimelineGroupSettings from "./TimelineGroupSettings";
 import { Timeline } from "vis-timeline/standalone";
 import { DataSet } from "vis-data";
 import { Button, Typography } from "@material-ui/core";
-import axios from "axios";
+import axiosActions from "../utils/axiosRequests";
 import "./TimelineStyle.css";
 import { connect } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
 import { useTheme } from "./ThemeContext";
+import { useSelector, useDispatch } from "react-redux";
+const actions = axiosActions();
 
-function TimelineComponent(props) {
-  const darkTheme = useTheme();
-
-  const useStyles = makeStyles((theme) => ({
+const useStyles = (darkTheme) =>
+  makeStyles((theme) => ({
     styles: {
       position: "absolute",
       marginLeft: "55%",
@@ -25,11 +24,23 @@ function TimelineComponent(props) {
     },
   }));
 
-  const classes = useStyles(props);
+export default function TimelineComponent(props) {
+  const darkTheme = useTheme();
 
-  const { tasks, isLoading, isError, mutate } = useGetTasks("");
-  const { groups, isLoadingGroups, isErrorGroups, mutateGroups } =
-    useGetGroups();
+  const classes = useStyles(darkTheme)(props);
+
+  const showTimelineGroupSettings = useSelector(
+    (state) => state.showTimelineGroupSettings
+  );
+
+  const dispatch = useDispatch();
+  const toggleTimelineGroupSettings = useCallback(
+    () => dispatch({ type: "TOGGLE_TIMELINE_GROUP_SETTINGS" }),
+    [dispatch]
+  );
+
+  const { data: tasks, mutate } = useFetch("/tasks");
+  const { data: groups } = useFetch("/groups");
 
   const TimelineDiv = useRef();
   const timeline = useRef();
@@ -55,7 +66,7 @@ function TimelineComponent(props) {
 
   const removeTimelineTask = async (item, callback) => {
     try {
-      await axios.delete(`/api/v1/tasks/${item._id}`);
+      await actions.deleteTask(item._id);
       mutate();
       callback(item);
     } catch (err) {
@@ -64,7 +75,7 @@ function TimelineComponent(props) {
   };
   const updateTimelineTask = async (item, callback) => {
     try {
-      await axios.patch(`/api/v1/tasks/updateTask/${item._id}`, {
+      await actions.patchTask(item._id, {
         start: item.start.toISOString().slice(0, 16),
         end: item.end.toISOString().slice(0, 16),
         group: item.group,
@@ -83,9 +94,6 @@ function TimelineComponent(props) {
     });
   }, [tasks, groups]);
 
-  const toggleTimelineGroupSettings = () => {
-    props.toggleTimelineGroupSettings();
-  };
   return (
     <>
       <Button className={classes.styles} onClick={toggleTimelineGroupSettings}>
@@ -95,21 +103,7 @@ function TimelineComponent(props) {
       </Button>
       <div className={classes.styles} ref={TimelineDiv}></div>
 
-      {props.showTimelineGroupSettings && <TimelineGroupSettings />}
+      {showTimelineGroupSettings && <TimelineGroupSettings />}
     </>
   );
 }
-const mapStateToProps = (state) => {
-  return {
-    showTimelineGroupSettings: state.showTimelineGroupSettings,
-  };
-};
-
-const mapDispatchToProps = (dispatch) => {
-  return {
-    toggleTimelineGroupSettings: () => {
-      dispatch({ type: "TOGGLE_TIMELINE_GROUP_SETTINGS" });
-    },
-  };
-};
-export default connect(mapStateToProps, mapDispatchToProps)(TimelineComponent);

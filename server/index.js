@@ -1,9 +1,9 @@
-const {startServer, configureServer} = require('./server');
+const { startServer, configureServer } = require("./server")
 
-const port= 3000;
-const start = async() => {
-    await configureServer();
-    startServer(port);
+const port = 3000
+const start = async () => {
+  await configureServer()
+  startServer(port)
 }
 
-start();
+start()
